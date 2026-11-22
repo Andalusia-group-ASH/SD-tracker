@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request Tracker — Supply Chain</title>
+<style>
+  :root{ --bg:#eef2f6; --card:#fff; --ink:#0f1c2b; --mut:#6a7a8c; --line:#e2e8ef; --navy:#0f2137; --navy2:#1c3d63; --teal:#12a594; --amber:#e8960c; --red:#d6452b; --green:#25d366; --soft:#f5f8fb; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#0b121a; --card:#131e2b; --ink:#e8eef4; --mut:#8ea1b4; --line:#243446; --soft:#182636; } }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:600px; margin:0 auto; padding:0 14px 28px; }
+  .hero{ background:linear-gradient(135deg,var(--navy),var(--navy2)); color:#fff; margin:0 -14px 0; padding:26px 22px 62px; border-radius:0 0 26px 26px; }
+  .hero .eyebrow{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; }
+  .hero h1{ margin:4px 0 4px; font-size:25px; font-weight:800; letter-spacing:-.01em; }
+  .hero p{ margin:0; font-size:13.5px; opacity:.8; }
+  .search{ margin-top:-34px; background:var(--card); border-radius:16px; padding:8px; display:flex; gap:8px; box-shadow:0 10px 30px rgba(15,33,55,.16); border:1px solid var(--line); }
+  .search input{ flex:1; min-width:0; border:0; outline:0; background:transparent; font:inherit; font-size:18px; padding:10px 12px; color:var(--ink); }
+  .search button{ border:0; background:var(--teal); color:#fff; font:inherit; font-weight:700; padding:0 22px; border-radius:11px; cursor:pointer; }
+  .search button:disabled{ opacity:.55; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; margin-top:16px; box-shadow:0 4px 16px rgba(15,33,55,.06); }
+  .msg{ text-align:center; color:var(--mut); padding:26px 10px; font-size:14.5px; }
+  .top{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .chip{ font-size:12px; font-weight:700; color:var(--mut); background:var(--soft); border:1px solid var(--line); padding:3px 10px; border-radius:999px; }
+  .pill{ font-size:12.5px; font-weight:800; padding:5px 12px; border-radius:999px; }
+  .p-prog{ background:#fff3dc; color:#9a6200; } .p-ok{ background:#dcf6ef; color:#0b7a6c; } .p-bad{ background:#fde5e0; color:#b2321b; } .p-closed{ background:#e6ecf3; color:#4a5b6d; }
+  @media (prefers-color-scheme: dark){ .p-prog{ background:#3a2c0e; color:#ffc765; } .p-ok{ background:#0f3a33; color:#7fe6d3; } .p-bad{ background:#44201a; color:#ff9f8c; } .p-closed{ background:#223142; color:#a9bacb; } }
+  h2.title{ font-size:20px; line-height:1.35; margin:12px 0 4px; font-weight:800; letter-spacing:-.01em; }
+  .sec{ margin-top:18px; } .sec h3{ margin:0 0 8px; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); font-weight:800; }
+  .box{ background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:12px 14px; font-size:14.5px; white-space:pre-wrap; word-break:break-word; }
+  .alert{ border-radius:12px; padding:12px 14px; margin-top:14px; background:#fde5e0; color:#a1301a; font-size:14.5px; }
+  @media (prefers-color-scheme: dark){ .alert{ background:#44201a; color:#ffb4a5; } }
+  .alert b{ display:block; font-size:15px; margin-bottom:2px; }
+  .note{ border-left:4px solid var(--amber); background:#fff8e8; color:#5a3d00; }
+  @media (prefers-color-scheme: dark){ .note{ background:#2f2610; color:#ffd88a; } }
+  .tl{ list-style:none; margin:0; padding:0; }
+  .tl li{ position:relative; display:flex; gap:12px; padding:0 0 14px; font-size:14.5px; color:var(--mut); }
+  .tl li:last-child{ padding-bottom:0; }
+  .tl li:not(:last-child)::before{ content:""; position:absolute; left:11px; top:24px; bottom:-2px; width:2px; background:var(--line); }
+  .tl li.done:not(:last-child)::before{ background:var(--teal); }
+  .dot{ width:24px; height:24px; border-radius:50%; flex:none; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; z-index:1; }
+  .tl li.done{ color:var(--ink); } .tl li.done .dot{ background:var(--teal); border-color:var(--teal); color:#fff; }
+  .tl li.cur{ color:var(--ink); font-weight:800; } .tl li.cur .dot{ background:var(--amber); border-color:var(--amber); color:#fff; box-shadow:0 0 0 5px rgba(232,150,12,.18); }
+  .tl li.bad{ color:var(--red); font-weight:800; } .tl li.bad .dot{ background:var(--red); border-color:var(--red); color:#fff; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .kv{ background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .kv span{ display:block; font-size:11px; color:var(--mut); font-weight:700; letter-spacing:.04em; text-transform:uppercase; } .kv b{ font-size:14.5px; }
+  .wa{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; background:var(--green); color:#fff; text-decoration:none; font-weight:800; padding:13px; border-radius:12px; box-shadow:0 6px 16px rgba(37,211,102,.3); }
+  .foot{ text-align:center; font-size:11.5px; color:var(--mut); margin-top:18px; }
+  @media (max-width:420px){ .grid{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero"><div class="eyebrow">Andalusia Hospital · Supply Chain</div><h1>Track your request</h1><p>Enter your request number to see where it stands.</p></div>
+  <form id="f" class="search"><input id="rid" type="text" inputmode="numeric" autocomplete="off" placeholder="Request number, e.g. 4093" aria-label="Request number"><button id="go" type="submit">Track</button></form>
+  <div id="out"></div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+var URL_ = "https://script.google.com/macros/s/AKfycbwrep3V0WPvjMqqTMezeTjsKRmQgtuVa0HIwykBCZ2jrop3a5ojbpz21vrVvNUZzE0h/exec";
+var STEPS = ["Department approval","Warehouse approval","Supply approval","Business unit manager approval","Waiting for assignment","Procurement in progress (quotes & offers)","Final approvals","Waiting for delivery","Delivery confirmation","Closed"];
+var out = document.getElementById('out'), foot = document.getElementById('foot'), go = document.getElementById('go');
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function pd(s){ var m = String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; }
+function fmtDate(s){ var d = pd(s); return d ? d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—'; }
+function remaining(s){
+  var d = pd(s); if(!d) return 'Not set yet';
+  var t = new Date(); var n = Math.round((d - new Date(t.getFullYear(), t.getMonth(), t.getDate())) / 86400000);
+  if(n > 0) return n + (n === 1 ? ' day left' : ' days left') + ' · ' + fmtDate(s); if(n === 0) return 'Due today'; return (-n) + (n === -1 ? ' day overdue' : ' days overdue') + ' · ' + fmtDate(s);
+}
+function render(r){
+  var step = parseInt(r.step, 10) || 0, final = r.final || '';
+  var pill = final === 'delivered' ? '<span class="pill p-ok">✓ Delivered</span>' : final === 'rejected' ? '<span class="pill p-bad">✕ Rejected</span>' : final === 'closed' ? '<span class="pill p-closed">Closed</span>' : '<span class="pill p-prog">● ' + esc(r.stage || 'In progress') + '</span>';
+  var h = '<div class="card"><div class="top"><span class="chip">Request #' + esc(r.id) + '</span>' + pill + '</div><h2 class="title" dir="auto">' + esc(r.subject) + '</h2>';
+  if(final === 'rejected') h += '<div class="alert"><b>This request was rejected</b>' + (r.rejectedBy ? 'Rejected at the “' + esc(r.stage_at || '') + '” stage by: ' + esc(r.rejectedBy) : 'The rejection stage is not recorded.') + '</div>';
+  if(r.detail) h += '<div class="sec"><div class="box">' + esc(r.detail) + '</div></div>';
+  if(r.description) h += '<div class="sec"><h3>Request details</h3><div class="box" dir="auto">' + esc(r.description) + '</div></div>';
+  h += '<div class="sec"><h3>Progress</h3><ul class="tl">' + STEPS.map(function(label, i){
+    var n = i + 1, cls = '', mark = n;
+    if(final === 'delivered' || final === 'closed'){ cls = 'done'; mark = '✓'; }
+    else if(n < step){ cls = 'done'; mark = '✓'; }
+    else if(n === step){ cls = final === 'rejected' ? 'bad' : 'cur'; mark = final === 'rejected' ? '✕' : n; }
+    return '<li class="' + cls + '"><span class="dot">' + mark + '</span><span>' + esc(label) + '</span></li>';
+  }).join('') + '</ul></div>';
+  h += '<div class="sec"><div class="grid">';
+  h += '<div class="kv"><span>Assigned to</span><b>' + esc(r.assignee || 'Not assigned yet') + '</b></div>';
+  h += '<div class="kv"><span>Requested on</span><b>' + fmtDate(r.created) + '</b></div>';
+  if(final === 'delivered' || final === 'closed') h += '<div class="kv"><span>Closed on (approx.)</span><b>' + fmtDate(r.closedAt) + '</b></div>';
+  else if(final !== 'rejected') h += '<div class="kv"><span>Expected completion</span><b>' + esc(remaining(r.expected)) + '</b></div>';
+  if(r.status) h += '<div class="kv"><span>Follow-up status</span><b>' + esc(r.status) + '</b></div>';
+  h += '</div>';
+  if(r.approver && r.approverPhone && !final) h += '<a class="wa" target="_blank" rel="noopener" href="https://wa.me/' + encodeURIComponent(r.approverPhone) + '?text=' + encodeURIComponent('Hello, I would like to follow up on request #' + r.id + ' — ' + r.subject + ', which is currently waiting for ' + r.approver + '.') + '">💬 Contact ' + esc(r.approver) + ' on WhatsApp</a>';
+  if(r.assignee && r.phone) h += '<a class="wa" target="_blank" rel="noopener" href="https://wa.me/' + encodeURIComponent(r.phone) + '?text=' + encodeURIComponent('Hello ' + r.assignee.split(' ')[0] + ', I would like to follow up on request #' + r.id + ' — ' + r.subject) + '">💬 Message ' + esc(r.assignee.split(' ')[0]) + ' on WhatsApp</a>';
+  h += '</div>';
+  if(r.notes) h += '<div class="sec"><h3>Notes from Supply Chain</h3><div class="box note" dir="auto">' + esc(r.notes) + '</div></div>';
+  out.innerHTML = h + '</div>';
+  foot.textContent = r.updatedAt ? 'Data last updated: ' + r.updatedAt : '';
+}
+function search(id){
+  id = String(id || '').trim().replace(/[^0-9A-Za-z\-_]/g, '');
+  if(!id){ out.innerHTML = '<div class="card msg">Please enter a request number.</div>'; return; }
+  go.disabled = true; out.innerHTML = '<div class="card msg">Searching…</div>';
+  fetch(URL_ + (URL_.indexOf('?') > -1 ? '&' : '?') + 'id=' + encodeURIComponent(id))
+    .then(function(r){ return r.json(); })
+    .then(function(r){
+      if(!r || !r.ok) throw new Error('bad');
+      if(!r.found){ out.innerHTML = '<div class="card msg">No request found with number <b>' + esc(id) + '</b>.<br>Please check the number and try again.</div>'; return; }
+      render(r);
+    })
+    .catch(function(){ out.innerHTML = '<div class="card msg">Connection problem. Please try again in a moment.</div>'; })
+    .then(function(){ go.disabled = false; });
+}
+document.getElementById('f').addEventListener('submit', function(e){ e.preventDefault(); search(document.getElementById('rid').value); });
+var q = new URLSearchParams(location.search).get('id'); if(q){ document.getElementById('rid').value = q; search(q); }
+</script>
+</body>
+</html>
